@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import useLocalforage from "../hooks/useLocalforage";
 import { InputGroup, FormControl, Button, Form } from 'react-bootstrap';
+import { ServiceAccountCredentials } from "google-spreadsheet";
 
-interface ApiKeyData {
+export interface ApiKeyData {
     file: string;
-    json: string;
+    credentials: ServiceAccountCredentials;
 }
 
 const ApiKey = () => {
     const [error, setError] = useState<string|null>();
-    const [json, setJson] = useLocalforage<ApiKeyData>('json');
-    //console.log(json);
+    const [apiKey, setApiKey] = useLocalforage<ApiKeyData>('apiKey');
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target?.files?.[0];
@@ -18,15 +18,23 @@ const ApiKey = () => {
         const reader = new FileReader();
         const loadComplete = (readEvent: ProgressEvent<FileReader>) => {
             // validate! 
-            const parsed = JSON.parse(readEvent.target?.result as string);
-            if (parsed.type !== "service_account") {
-                setError("Not a valid JSON file!")
+            try {
+                const parsed = JSON.parse(readEvent.target?.result as string);
+                if (parsed.client_email === undefined || parsed.private_key === undefined) {
+                    setError("Not a valid JSON file!")
+                }
+                // if (parsed.type !== "service_account") {
+                //     setError("Not a valid JSON file!")
+                // }
+                const data: ApiKeyData = {
+                    file: file.name,
+                    credentials: parsed as ServiceAccountCredentials
+                }
+                setApiKey(data);
             }
-            const data: ApiKeyData = {
-                file: file.name,
-                json: readEvent.target?.result as string
+            catch (e) {
+                setError("Error reading file. Is it a API json file?")
             }
-            setJson(data);            
         };
         
         reader.addEventListener("load", loadComplete);
@@ -34,32 +42,33 @@ const ApiKey = () => {
     }
 
     const handleClear = () => {
-        setJson(null);
+        setApiKey(null);
     }
 
     if (error) {
         return (
             <InputGroup className="mb-3">
                 <FormControl
-                    value={ error }
-                    plaintext
+                    placeholder={error}
+                    className="text-danger"
+                    readOnly
                 />
                 <InputGroup.Append>
-                <Button variant="outline-secondary">Button</Button>
+                    <Button variant="outline-secondary" onClick={handleClear}>Clear</Button>
                 </InputGroup.Append>
             </InputGroup>
         );    
     }
 
-    if (json) {
+    if (apiKey) {
         return (
             <InputGroup className="mb-3">
                 <FormControl
-                    value={ json.file }
-                    plaintext
+                    placeholder={apiKey.file}
+                    readOnly
                 />
                 <InputGroup.Append>
-                <Button variant="outline-secondary" onClick={handleClear}>Clear</Button>
+                    <Button variant="outline-secondary" onClick={handleClear}>Clear</Button>
                 </InputGroup.Append>
             </InputGroup>
         );    
