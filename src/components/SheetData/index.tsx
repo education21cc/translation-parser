@@ -21,12 +21,10 @@ const SheetData = (props: Props) => {
                 await doc.loadInfo();
                 
                 setSelectedSheet(doc.sheetsByIndex[0].sheetId);
-                console.log('x', doc.sheetsByIndex[0].sheetId)
                 setDoc(doc);
             }
             catch (e) {
                 //debugger;
-                console.log(e);
                 if (!e.response) {
                     setError(`Generic error!\n${e}`);
                     return;
@@ -109,7 +107,6 @@ const SheetData = (props: Props) => {
             <Alert variant="info">Loading...</Alert>
         )
     }
-//console.log(rows)
 
     return (
         <Card>

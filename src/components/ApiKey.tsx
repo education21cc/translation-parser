@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useLocalforage from "../hooks/useLocalforage";
 import { InputGroup, FormControl, Button, Form } from 'react-bootstrap';
 import { ServiceAccountCredentials } from "google-spreadsheet";
@@ -8,9 +8,14 @@ export interface ApiKeyData {
     credentials: ServiceAccountCredentials;
 }
 
-const ApiKey = () => {
+interface Props {
+    onChange: (value: ApiKeyData) => void;
+}
+
+const ApiKey = (props: Props) => {
     const [error, setError] = useState<string|null>();
     const [apiKey, setApiKey] = useLocalforage<ApiKeyData>('apiKey');
+    const {onChange} = props;
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target?.files?.[0];
@@ -40,6 +45,12 @@ const ApiKey = () => {
         reader.addEventListener("load", loadComplete);
         reader.readAsText(file);
     }
+
+    useEffect(() => {
+        if (apiKey) {
+            onChange(apiKey);
+        }
+    }, [apiKey, onChange])
 
     const handleClear = () => {
         setApiKey(null);

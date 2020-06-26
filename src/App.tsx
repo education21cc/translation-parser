@@ -1,16 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import ApiKey, { ApiKeyData } from './components/ApiKey';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Form from 'react-bootstrap/Form';
 import Container from 'react-bootstrap/Container';
 import SheetId from 'components/SheetId';
-import useLocalforage from 'hooks/useLocalforage';
 import SheetData from 'components/SheetData';
+import { Button, Alert } from 'react-bootstrap';
 
 function App() {
-  const [apiKey] = useLocalforage<ApiKeyData>('apiKey');
-  const [sheetId] = useLocalforage<string>('sheetId');
+  const [apiKey, setApiKey] = useState<ApiKeyData|null>();
+  const [sheetId, setSheetId] = useState<string|null>();
+
+  const [sheetRead, setSheetRead] = useState(false);
+  const [showError, setShowError] = useState(false);
+
+
+  const handleReadSheet = () => {
+
+    if (!(apiKey && sheetId)) {
+      setShowError(true);
+      setSheetRead(false);
+      return;
+    }
+    setShowError(false);
+    setSheetRead(true);
+  }
 
   return (
     
@@ -31,19 +46,29 @@ function App() {
                 <li>Ensure share the google sheet to the the e-mail address of the service account</li>
               </ol>
             </Form.Text>
-            <ApiKey />
+            <ApiKey onChange={setApiKey}/>
           </Form.Group>
           <Form.Group>
             <Form.Label>Sheet ID</Form.Label>
             <Form.Text className="text-muted">
               {`Copy from https://docs.google.com/spreadsheets/d/<SHEET ID>`}
             </Form.Text>
-            <SheetId />
+            <SheetId onChange={setSheetId}/>
           </Form.Group>
         </Form>
+        { (!sheetRead || !apiKey || !sheetId ) && (
+          <Button onClick={handleReadSheet}>
+            Read sheet!
+          </Button>
+        )}
+        { showError && (
+          <Alert variant="danger" className="mt-3" onClose={() => setShowError(false)} dismissible>
+              Please upload a API key json and fill out the sheet ID
+          </Alert>
+        )}
       </Container>
       <Container>
-        { (apiKey && sheetId) && (
+        { (apiKey && sheetId && sheetRead) && (
           <SheetData sheetId={sheetId} credentials={apiKey.credentials} />
         )}
       </Container>
