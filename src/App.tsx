@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './App.css';
 import ApiKey, { ApiKeyData } from './components/ApiKey';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Form from 'react-bootstrap/Form';
@@ -7,24 +6,31 @@ import Container from 'react-bootstrap/Container';
 import SheetId from 'components/SheetId';
 import SheetData from 'components/SheetData';
 import { Button, Alert } from 'react-bootstrap';
+import './App.css';
 
 function App() {
   const [apiKey, setApiKey] = useState<ApiKeyData|null>();
   const [sheetId, setSheetId] = useState<string|null>();
 
   const [sheetRead, setSheetRead] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const [error, setError] = useState<string|null>();
 
 
   const handleReadSheet = () => {
 
     if (!(apiKey && sheetId)) {
-      setShowError(true);
-      setSheetRead(false);
+      setErrorText(" Please upload a API key json and fill out the sheet ID");
       return;
     }
-    setShowError(false);
+    setError(null);
     setSheetRead(true);
+  }
+
+  const setErrorText = (text: string|null) => {
+    if (text !== null){
+      setSheetRead(false);
+    }
+    setError(text);
   }
 
   return (
@@ -53,27 +59,29 @@ function App() {
             <Form.Text className="text-muted">
               {`Copy from https://docs.google.com/spreadsheets/d/<SHEET ID>`}
             </Form.Text>
-            <SheetId onChange={setSheetId}/>
+            <SheetId onChange={setSheetId} />
           </Form.Group>
         </Form>
+        { error && (
+          <Alert variant="danger" className="mt-3" onClose={() => setErrorText(null)} dismissible>
+             {error}
+          </Alert>
+        )}
         { (!sheetRead || !apiKey || !sheetId ) && (
           <Button onClick={handleReadSheet}>
             Read sheet!
           </Button>
         )}
-        { showError && (
-          <Alert variant="danger" className="mt-3" onClose={() => setShowError(false)} dismissible>
-              Please upload a API key json and fill out the sheet ID
-          </Alert>
-        )}
       </Container>
       <Container>
         { (apiKey && sheetId && sheetRead) && (
-          <SheetData sheetId={sheetId} credentials={apiKey.credentials} />
+          <SheetData 
+            sheetId={sheetId} 
+            credentials={apiKey.credentials}
+            setError={setErrorText}
+          />
         )}
       </Container>
-        <p>
-        </p>       
     </div>
   );
 }

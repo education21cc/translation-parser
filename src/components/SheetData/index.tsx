@@ -1,13 +1,15 @@
 import { GoogleSpreadsheet, ServiceAccountCredentials, GoogleSpreadsheetRow } from 'google-spreadsheet';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Card, Form, Button } from 'react-bootstrap';
 
 interface Props {
     sheetId: string;
     credentials: ServiceAccountCredentials;
+    setError: (error: string|null) => void;
 }
+
 const SheetData = (props: Props) => {
-    const [error, setError] = useState<string|null>();
+    const {setError} = props;
     const [doc, setDoc] = useState<GoogleSpreadsheet>()
     const [selectedSheet, setSelectedSheet] = useState<string>();
     const [languages, setLanguages] = useState<string[]>([]);
@@ -40,7 +42,7 @@ const SheetData = (props: Props) => {
             }
         };
         fetch();
-    }, [props.credentials, props.sheetId]);
+    }, [props.credentials, props.sheetId, setError]);
     
     useEffect(() => {
         if (!doc || selectedSheet === undefined) { return };
@@ -74,12 +76,15 @@ const SheetData = (props: Props) => {
             if (!doc || selectedLanguage === undefined || selectedSheet === undefined) return;
             const keyName = doc.sheetsById[selectedSheet].headerValues[0];  // should be just 'key' but you never know
             const rows = await doc.sheetsById[selectedSheet].getRows();
-            const obj = rows.reduce((acc: {[key: string]: string}, value: GoogleSpreadsheetRow) => {
+            const obj = rows.reduce((acc: { key: string, value: string}[], value: GoogleSpreadsheetRow) => {
                 if (value[keyName] !== undefined) {
-                    acc[value[keyName] as string] = value[selectedLanguage];
+                    acc.push({
+                        key: value[keyName],
+                        value: value[selectedLanguage]
+                    });
                 }
                 return acc;
-            }, {});
+            }, []);
             
             const a = document.createElement('a');
             const text = JSON.stringify(obj);
@@ -89,19 +94,7 @@ const SheetData = (props: Props) => {
             a.click()
         }
         download();
-      }
-
-
-    if (error) {
-        return (
-            <Alert variant="danger">
-                {error.split('\n').map((item, i) => {
-                    return <p key={i}>{item}</p>;
-                })}
-            </Alert>
-        );
     }
-
     if (!doc || selectedSheet === undefined) {
         return (
             <Alert variant="info">Loading...</Alert>
@@ -118,7 +111,6 @@ const SheetData = (props: Props) => {
                             <option key={sheet.sheetId} value={sheet.sheetId}>{sheet.title}</option>
                         ))}
                     </Form.Control>
-                    {/* <SheetSelector list={doc.sheetsByIndex.map(s => s.title)} onChange={handleSheetChange} /> */}
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>Language</Form.Label>
@@ -127,14 +119,12 @@ const SheetData = (props: Props) => {
                             <option key={lang} value={lang}>{lang}</option>
                         ))}
                     </Form.Control>
-                    {/* <SheetSelector list={doc.sheetsByIndex.map(s => s.title)} onChange={handleSheetChange} /> */}
                 </Form.Group>
                 {  (selectedLanguage !== undefined && selectedSheet !== undefined) && (
                     <Button onClick={handleDownload}>
                         Download
                     </Button>
                 )}
-                {/* {JSON.stringify(doc.sheetsById[selectedSheet].getRows())} */}
             </Card.Body>
         </Card>
     );
