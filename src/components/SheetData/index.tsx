@@ -76,18 +76,20 @@ const SheetData = (props: Props) => {
             if (!doc || selectedLanguage === undefined || selectedSheet === undefined) return;
             const keyName = doc.sheetsById[selectedSheet].headerValues[0];  // should be just 'key' but you never know
             const rows = await doc.sheetsById[selectedSheet].getRows();
-            const obj = rows.reduce((acc: { key: string, value: string}[], value: GoogleSpreadsheetRow) => {
-                if (value[keyName] !== undefined) {
-                    acc.push({
-                        key: value[keyName],
-                        value: value[selectedLanguage]
-                    });
-                }
-                return acc;
-            }, []);
+            const obj = {
+                translations: rows.reduce((acc: { key: string, value: string}[], value: GoogleSpreadsheetRow) => {
+                    if (value[keyName] !== undefined) {
+                        acc.push({
+                            key: value[keyName],
+                            value: value[selectedLanguage]
+                        });
+                    }
+                    return acc;
+                }, [])
+            };
             
             const a = document.createElement('a');
-            const text = JSON.stringify(obj);
+            const text = JSON.stringify(obj, null, 4);
             const filename = `${doc.sheetsById[selectedSheet].title}_${selectedLanguage}.json`;
             a.setAttribute('href', 'data:text/json;charset=utf-8,'+encodeURIComponent(text));
             a.setAttribute('download', filename);
