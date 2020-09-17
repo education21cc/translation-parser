@@ -5,8 +5,9 @@ import Form from 'react-bootstrap/Form';
 import Container from 'react-bootstrap/Container';
 import SheetId from 'components/SheetId';
 import SheetData from 'components/SheetData';
-import { Button, Alert } from 'react-bootstrap';
+import { Button, Alert, Tabs, Tab } from 'react-bootstrap';
 import './App.css';
+import Reader from 'components/Reader';
 
 function App() {
   const [apiKey, setApiKey] = useState<ApiKeyData|null>();
@@ -39,48 +40,56 @@ function App() {
       <Jumbotron className="text-center">
         <h1>Translation parser</h1>
       </Jumbotron>
+
       <Container>
-        <Form>
-          <Form.Group>
-            <Form.Label>API Key (json file)</Form.Label>
-            <Form.Text className="text-muted">
-              <ol>
-                <li>Go to: https://console.developers.google.com/ and create a project</li>
-                <li>Add the Google Sheets API</li>
-                <li>Create a service account</li>
-                <li>Create a new JSON key under this service account and upload this key here</li>
-                <li>Ensure share the google sheet to the the e-mail address of the service account</li>
-              </ol>
-            </Form.Text>
-            <ApiKey onChange={setApiKey}/>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Sheet ID</Form.Label>
-            <Form.Text className="text-muted">
-              {`Copy from https://docs.google.com/spreadsheets/d/<SHEET ID>`}
-            </Form.Text>
-            <SheetId onChange={setSheetId} />
-          </Form.Group>
-        </Form>
-        { error && (
-          <Alert variant="danger" className="mt-3" onClose={() => setErrorText(null)} dismissible>
-             {error}
-          </Alert>
-        )}
-        { (!sheetRead || !apiKey || !sheetId ) && (
-          <Button onClick={handleReadSheet}>
-            Read sheet!
-          </Button>
-        )}
-      </Container>
-      <Container>
-        { (apiKey && sheetId && sheetRead) && (
-          <SheetData 
-            sheetId={sheetId} 
-            credentials={apiKey.credentials}
-            setError={setErrorText}
-          />
-        )}
+        <Tabs defaultActiveKey="sheets2Json" id="tab" className="mb-4">
+          <Tab eventKey="sheets2Json" title="Google sheets -> JSON">
+            <Form>
+              <Form.Group>
+                <Form.Label>API Key (json file)</Form.Label>
+                <Form.Text className="text-muted">
+                  <ol>
+                    <li>Go to: https://console.developers.google.com/ and create a project</li>
+                    <li>Add the Google Sheets API</li>
+                    <li>Create a service account</li>
+                    <li>Create a new JSON key under this service account and upload this key here</li>
+                    <li>Ensure share the google sheet to the the e-mail address of the service account</li>
+                  </ol>
+                </Form.Text>
+                <ApiKey onChange={setApiKey}/>
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Sheet ID</Form.Label>
+                <Form.Text className="text-muted">
+                  {`Copy from https://docs.google.com/spreadsheets/d/<SHEET ID>`}
+                </Form.Text>
+                <SheetId onChange={setSheetId} />
+              </Form.Group>
+            </Form>
+            { error && (
+              <Alert variant="danger" className="mt-3" onClose={() => setErrorText(null)} dismissible>
+                {error}
+              </Alert>
+            )}
+            { (!sheetRead || !apiKey || !sheetId ) && (
+              <Button onClick={handleReadSheet}>
+                Read sheet!
+              </Button>
+            )}
+            { (apiKey && sheetId && sheetRead) && (
+              <SheetData 
+                sheetId={sheetId} 
+                credentials={apiKey.credentials}
+                setError={setErrorText}
+              />
+            )}
+          </Tab>
+
+          <Tab eventKey="json2Sheets" title="JSON -> Google sheets  ">
+            <Reader/>
+          </Tab>
+        </Tabs>    
+
       </Container>
     </div>
   );
