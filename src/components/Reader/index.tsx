@@ -23,7 +23,7 @@ const Reader = () => {
     const handleReadSheet = () => {
         if (!json) return;
         const asString = json.translations.reduce((acc, value) => {
-            acc += `${value.key};${value.value.replace('\n', '\\n')}\n`;
+            acc += `${value.key};${value.value.replaceAll('\n', '\\n')}\n`;
             return acc;
         }, "");
         setOutput(asString);
