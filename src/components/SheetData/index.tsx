@@ -74,7 +74,11 @@ const SheetData = (props: Props) => {
   const handleDownload = () => {
     const download = async () => {
       if (!doc || selectedLanguage === undefined || selectedSheet === undefined) return;
-      const keyName = doc.sheetsById[selectedSheet].headerValues[0];  // should be just 'key' but you never know
+      const keyName = doc.sheetsById[selectedSheet]?.headerValues?.[0];  // should be just 'key' but you never know
+      if (!keyName) {
+        setError("Ensure cell A:1 is called 'key'")
+        return
+      }
       const rows = await doc.sheetsById[selectedSheet].getRows();
       const obj = {
         translations: rows.reduce((acc: { key: string, value: string}[], value: GoogleSpreadsheetRow) => {
